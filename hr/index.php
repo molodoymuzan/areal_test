@@ -202,6 +202,8 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 2) {
         </div>
     </div>
 
-    <script src="../js/hr.js"></script>
+<script src="../js/common.js"></script>
+<script src="../js/hr.js"></script>
+
 </body>
 </html>

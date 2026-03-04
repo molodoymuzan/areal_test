@@ -376,6 +376,8 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 1) {
         </div>
     </div>
 
+    <script src="../js/common.js"></script>
     <script src="../js/director.js"></script>
+
 </body>
 </html>

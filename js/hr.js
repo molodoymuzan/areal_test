@@ -1,60 +1,6 @@
 let currentEditId = null;
 let currentFireId = null;
-
-function updateGreeting() {
-    const now = new Date();
-    const hours = now.getHours();
-    const userName = document.getElementById('userName').textContent.split(' ')[0];
-    
-    let greeting = 'Добрый вечер';
-    if (hours >= 5 && hours < 12) greeting = 'Доброе утро';
-    else if (hours >= 12 && hours < 18) greeting = 'Добрый день';
-    
-    document.getElementById('greeting').textContent = `${greeting}, ${userName}`;
-    
-    const dateStr = now.toLocaleDateString('ru-RU', {
-        weekday: 'long', day: 'numeric', month: 'long'
-    });
-    document.getElementById('currentDate').textContent = dateStr;
-}
-
-function getInitials(name) {
-    return name.split(' ').map(n => n[0]).join('').substring(0, 2);
-}
-
-function loadUserData() {
-    fetch('../api/profile.php')
-        .then(res => res.json())
-        .then(data => {
-            document.getElementById('userName').textContent = data.full_name;
-            document.getElementById('userInitials').textContent = getInitials(data.full_name);
-            document.getElementById('profileFullName').textContent = data.full_name;
-            document.getElementById('profileInitials').textContent = getInitials(data.full_name);
-            
-            document.getElementById('profileFields').innerHTML = `
-                <div class="profile-field">
-                    <label>Фамилия</label>
-                    <input type="text" value="${data.last_name || ''}" id="profileLastName">
-                </div>
-                <div class="profile-field">
-                    <label>Имя</label>
-                    <input type="text" value="${data.first_name || ''}" id="profileFirstName">
-                </div>
-                <div class="profile-field profile-field-full">
-                    <label>Отчество</label>
-                    <input type="text" value="${data.middle_name || ''}" id="profileMiddleName">
-                </div>
-                <div class="profile-field profile-field-full">
-                    <label>Телефон</label>
-                    <input type="tel" value="${data.phone || ''}" id="profilePhone">
-                </div>
-                <div class="profile-field profile-field-full">
-                    <label>Email</label>
-                    <input type="email" value="${data.email || ''}" id="profileEmail">
-                </div>
-            `;
-        });
-}
+let currentHrEditId = null;
 
 function renderFilters() {
     fetch('../api/structure.php')
@@ -70,33 +16,41 @@ function renderFilters() {
                 posOptions += `<option value="${p.id}">${p.name}</option>`;
             });
             
-            document.getElementById('filtersSection').innerHTML = `
-                <div class="filter-item">
-                    <label>Отдел</label>
-                    <select id="departmentFilter">${deptOptions}</select>
-                </div>
-                <div class="filter-item">
-                    <label>Должность</label>
-                    <select id="positionFilter">${posOptions}</select>
-                </div>
-                <div class="filter-item">
-                    <label>Поиск</label>
-                    <input type="text" id="searchInput" placeholder="ФИО...">
-                </div>
-                <button class="btn-reset" id="resetBtn">Сбросить</button>
-            `;
+            const filtersEl = document.getElementById('filtersSection');
+            if (filtersEl) {
+                filtersEl.innerHTML = `
+                    <div class="filter-item">
+                        <label>Отдел</label>
+                        <select id="departmentFilter">${deptOptions}</select>
+                    </div>
+                    <div class="filter-item">
+                        <label>Должность</label>
+                        <select id="positionFilter">${posOptions}</select>
+                    </div>
+                    <div class="filter-item">
+                        <label>Поиск</label>
+                        <input type="text" id="searchInput" placeholder="ФИО...">
+                    </div>
+                    <button class="btn-reset" id="resetBtn">Сбросить</button>
+                `;
+            }
             
-            document.getElementById('resetBtn').onclick = resetFilters;
-            document.getElementById('searchInput').oninput = renderCards;
-            document.getElementById('departmentFilter').onchange = renderCards;
-            document.getElementById('positionFilter').onchange = renderCards;
+            document.getElementById('resetBtn')?.addEventListener('click', resetFilters);
+            document.getElementById('searchInput')?.addEventListener('input', renderCards);
+            document.getElementById('departmentFilter')?.addEventListener('change', renderCards);
+            document.getElementById('positionFilter')?.addEventListener('change', renderCards);
         });
 }
 
 function resetFilters() {
-    document.getElementById('departmentFilter').value = 'all';
-    document.getElementById('positionFilter').value = 'all';
-    document.getElementById('searchInput').value = '';
+    const deptFilter = document.getElementById('departmentFilter');
+    const posFilter = document.getElementById('positionFilter');
+    const searchInput = document.getElementById('searchInput');
+    
+    if (deptFilter) deptFilter.value = 'all';
+    if (posFilter) posFilter.value = 'all';
+    if (searchInput) searchInput.value = '';
+    
     renderCards();
 }
 
@@ -181,7 +135,9 @@ function renderCards() {
                     </div>
                 `;
             });
-            document.getElementById('cardsGrid').innerHTML = html;
+            
+            const cardsGrid = document.getElementById('cardsGrid');
+            if (cardsGrid) cardsGrid.innerHTML = html;
             
             updateStats();
         });
@@ -195,44 +151,18 @@ function updateStats() {
             const active = employees.filter(e => e.status_id == 1).length;
             const dismissed = employees.filter(e => e.status_id == 2).length;
             
-            document.getElementById('totalCount').innerText = total;
-            document.getElementById('activeCount').innerText = active;
-            document.getElementById('dismissedCount').innerText = dismissed;
-        });
-}
-
-function loadDepartments() {
-    fetch('../api/structure.php')
-        .then(res => res.json())
-        .then(data => {
-            const deptSelect = document.getElementById('department');
-            let options = '<option value="">Выберите отдел</option>';
-            data.departments.forEach(d => {
-                options += `<option value="${d.id}">${d.name}</option>`;
-            });
-            deptSelect.innerHTML = options;
+            const totalEl = document.getElementById('totalCount');
+            const activeEl = document.getElementById('activeCount');
+            const dismissedEl = document.getElementById('dismissedCount');
+            
+            if (totalEl) totalEl.innerText = total;
+            if (activeEl) activeEl.innerText = active;
+            if (dismissedEl) dismissedEl.innerText = dismissed;
         });
 }
 
 document.getElementById('department')?.addEventListener('change', function() {
-    const posSelect = document.getElementById('position');
-    const deptId = this.value;
-    
-    if (deptId) {
-        fetch('../api/structure.php')
-            .then(res => res.json())
-            .then(data => {
-                let options = '<option value="">Выберите должность</option>';
-                data.positions
-                    .filter(p => p.department_id == deptId)
-                    .forEach(p => {
-                        options += `<option value="${p.id}">${p.name}</option>`;
-                    });
-                posSelect.innerHTML = options;
-            });
-    } else {
-        posSelect.innerHTML = '<option value="">Выберите должность</option>';
-    }
+    updatePositionSelect(this.value, 'position');
 });
 
 window.editEmployee = (id) => {
@@ -244,155 +174,196 @@ window.editEmployee = (id) => {
             currentEditId = id;
             document.getElementById('employeeModalTitle').innerText = 'Редактировать сотрудника';
             
-            document.getElementById('lastName').value = emp.last_name || '';
-            document.getElementById('firstName').value = emp.first_name || '';
-            document.getElementById('middleName').value = emp.middle_name || '';
-            document.getElementById('birthDate').value = emp.birth_date;
-            document.getElementById('hireDate').value = emp.hire_date;
-            document.getElementById('passportSeries').value = emp.passport_series || '';
-            document.getElementById('passportNumber').value = emp.passport_number || '';
-            document.getElementById('phone').value = emp.phone || '';
-            document.getElementById('email').value = emp.email || '';
-            document.getElementById('city').value = emp.city || '';
-            document.getElementById('street').value = emp.street || '';
-            document.getElementById('house').value = emp.house || '';
-            document.getElementById('apartment').value = emp.apartment || '';
-            document.getElementById('postalCode').value = emp.postal_code || '';
-            document.getElementById('salary').value = emp.salary;
+            const fields = {
+                lastName: document.getElementById('lastName'),
+                firstName: document.getElementById('firstName'),
+                middleName: document.getElementById('middleName'),
+                birthDate: document.getElementById('birthDate'),
+                hireDate: document.getElementById('hireDate'),
+                passportSeries: document.getElementById('passportSeries'),
+                passportNumber: document.getElementById('passportNumber'),
+                phone: document.getElementById('phone'),
+                email: document.getElementById('email'),
+                city: document.getElementById('city'),
+                street: document.getElementById('street'),
+                house: document.getElementById('house'),
+                apartment: document.getElementById('apartment'),
+                postalCode: document.getElementById('postalCode'),
+                salary: document.getElementById('salary'),
+                department: document.getElementById('department'),
+                position: document.getElementById('position')
+            };
             
-            document.getElementById('department').value = emp.department_id;
+            if (fields.lastName) fields.lastName.value = emp.last_name || '';
+            if (fields.firstName) fields.firstName.value = emp.first_name || '';
+            if (fields.middleName) fields.middleName.value = emp.middle_name || '';
+            if (fields.birthDate) fields.birthDate.value = emp.birth_date;
+            if (fields.hireDate) fields.hireDate.value = emp.hire_date;
+            if (fields.passportSeries) fields.passportSeries.value = emp.passport_series || '';
+            if (fields.passportNumber) fields.passportNumber.value = emp.passport_number || '';
+            if (fields.phone) fields.phone.value = emp.phone || '';
+            if (fields.email) fields.email.value = emp.email || '';
+            if (fields.city) fields.city.value = emp.city || '';
+            if (fields.street) fields.street.value = emp.street || '';
+            if (fields.house) fields.house.value = emp.house || '';
+            if (fields.apartment) fields.apartment.value = emp.apartment || '';
+            if (fields.postalCode) fields.postalCode.value = emp.postal_code || '';
+            if (fields.salary) fields.salary.value = emp.salary;
+            if (fields.department) fields.department.value = emp.department_id;
+            
             setTimeout(() => {
-                document.getElementById('position').value = emp.position_id;
+                if (fields.position) fields.position.value = emp.position_id;
             }, 100);
             
-            document.getElementById('employeeModal').classList.add('active');
+            document.getElementById('employeeModal')?.classList.add('active');
         });
 };
 
 window.confirmFire = (id, name) => {
     currentFireId = id;
-    document.getElementById('fireConfirmMessage').innerText = `Уволить сотрудника ${name}?`;
-    document.getElementById('fireConfirmModal').classList.add('active');
+    const msgEl = document.getElementById('fireConfirmMessage');
+    if (msgEl) msgEl.innerText = `Уволить сотрудника ${name}?`;
+    document.getElementById('fireConfirmModal')?.classList.add('active');
 };
 
-document.getElementById('addBtn').onclick = () => {
+document.getElementById('addBtn')?.addEventListener('click', () => {
     currentEditId = null;
     document.getElementById('employeeModalTitle').innerText = 'Новый сотрудник';
     
-    document.getElementById('lastName').value = '';
-    document.getElementById('firstName').value = '';
-    document.getElementById('middleName').value = '';
-    document.getElementById('birthDate').value = '';
-    document.getElementById('hireDate').value = new Date().toISOString().slice(0,10);
-    document.getElementById('passportSeries').value = '';
-    document.getElementById('passportNumber').value = '';
-    document.getElementById('phone').value = '';
-    document.getElementById('email').value = '';
-    document.getElementById('city').value = '';
-    document.getElementById('street').value = '';
-    document.getElementById('house').value = '';
-    document.getElementById('apartment').value = '';
-    document.getElementById('postalCode').value = '';
-    document.getElementById('department').value = '';
-    document.getElementById('position').innerHTML = '<option value="">Выберите должность</option>';
-    document.getElementById('salary').value = '';
+    const fields = {
+        lastName: document.getElementById('lastName'),
+        firstName: document.getElementById('firstName'),
+        middleName: document.getElementById('middleName'),
+        birthDate: document.getElementById('birthDate'),
+        hireDate: document.getElementById('hireDate'),
+        passportSeries: document.getElementById('passportSeries'),
+        passportNumber: document.getElementById('passportNumber'),
+        phone: document.getElementById('phone'),
+        email: document.getElementById('email'),
+        city: document.getElementById('city'),
+        street: document.getElementById('street'),
+        house: document.getElementById('house'),
+        apartment: document.getElementById('apartment'),
+        postalCode: document.getElementById('postalCode'),
+        salary: document.getElementById('salary'),
+        department: document.getElementById('department'),
+        position: document.getElementById('position')
+    };
     
-    document.getElementById('employeeModal').classList.add('active');
-};
+    if (fields.lastName) fields.lastName.value = '';
+    if (fields.firstName) fields.firstName.value = '';
+    if (fields.middleName) fields.middleName.value = '';
+    if (fields.birthDate) fields.birthDate.value = '';
+    if (fields.hireDate) fields.hireDate.value = new Date().toISOString().slice(0,10);
+    if (fields.passportSeries) fields.passportSeries.value = '';
+    if (fields.passportNumber) fields.passportNumber.value = '';
+    if (fields.phone) fields.phone.value = '';
+    if (fields.email) fields.email.value = '';
+    if (fields.city) fields.city.value = '';
+    if (fields.street) fields.street.value = '';
+    if (fields.house) fields.house.value = '';
+    if (fields.apartment) fields.apartment.value = '';
+    if (fields.postalCode) fields.postalCode.value = '';
+    if (fields.department) fields.department.value = '';
+    if (fields.position) fields.position.innerHTML = '<option value="">Выберите должность</option>';
+    if (fields.salary) fields.salary.value = '';
+    
+    document.getElementById('employeeModal')?.classList.add('active');
+});
 
-document.getElementById('saveEmployeeBtn').onclick = () => {
-    alert('Функция сохранения будет добавлена позже');
-};
+document.getElementById('profileBtn')?.addEventListener('click', () => {
+    fetch('../api/profile.php')
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById('profileFullName').textContent = data.full_name || 'Не указано';
+            
+            const fields = [
+                { label: 'Фамилия', value: data.last_name || 'Не указана' },
+                { label: 'Имя', value: data.first_name || 'Не указано' },
+                { label: 'Отчество', value: data.middle_name || 'Не указано' },
+                { label: 'Отдел', value: data.department_name || 'Не указан' },
+                { label: 'Должность', value: data.position_name || 'Не указана' },
+                { label: 'Телефон', value: data.phone || 'Не указан' },
+                { label: 'Email', value: data.email || 'Не указан' }
+            ];
 
-document.getElementById('confirmFireBtn').onclick = () => {
-    alert('Функция увольнения будет добавлена позже');
-    document.getElementById('fireConfirmModal').classList.remove('active');
+            const fieldsHtml = fields.map(f => `
+                <div class="profile-field">
+                    <label>${f.label}</label>
+                    <input type="text" value="${f.value}" readonly>
+                </div>
+            `).join('');
+
+            document.getElementById('profileFields').innerHTML = fieldsHtml;
+            document.getElementById('profileModal')?.classList.add('active');
+        });
+});
+
+document.getElementById('closeProfileBtn')?.addEventListener('click', () => {
+    document.getElementById('profileModal')?.classList.remove('active');
+});
+
+document.getElementById('closeEmployeeBtn')?.addEventListener('click', () => {
+    document.getElementById('employeeModal')?.classList.remove('active');
+});
+
+document.getElementById('closeHrModal')?.addEventListener('click', () => {
+    document.getElementById('hrModal')?.classList.remove('active');
+    currentHrEditId = null;
+});
+
+document.getElementById('cancelFireBtn')?.addEventListener('click', () => {
+    document.getElementById('fireConfirmModal')?.classList.remove('active');
     currentFireId = null;
-};
+});
 
-document.getElementById('cancelFireBtn').onclick = () => {
-    document.getElementById('fireConfirmModal').classList.remove('active');
-    currentFireId = null;
-};
-
-document.getElementById('profileBtn').onclick = () => {
-    document.getElementById('profileModal').classList.add('active');
-};
-
-document.getElementById('closeProfileBtn').onclick = () => {
-    document.getElementById('profileModal').classList.remove('active');
-};
-
-document.getElementById('saveProfileBtn').onclick = () => {
-    alert('Изменения сохранены');
-    document.getElementById('profileModal').classList.remove('active');
-};
-
-document.getElementById('closeEmployeeBtn').onclick = () => {
-    document.getElementById('employeeModal').classList.remove('active');
-};
-
-document.getElementById('logoutBtn').onclick = () => {
+document.getElementById('logoutBtn')?.addEventListener('click', () => {
     if (confirm('Выйти?')) {
         window.location.href = '../logout.php';
     }
-};
+});
 
-document.getElementById('profileModal').onclick = (e) => {
-    if (e.target === document.getElementById('profileModal')) {
-        document.getElementById('profileModal').classList.remove('active');
+document.getElementById('saveEmployeeBtn')?.addEventListener('click', () => {
+    alert('Функция сохранения сотрудника будет добавлена позже');
+    document.getElementById('employeeModal')?.classList.remove('active');
+});
+
+document.getElementById('saveHrBtn')?.addEventListener('click', () => {
+    alert('Функция сохранения HR будет добавлена позже');
+    document.getElementById('hrModal')?.classList.remove('active');
+    currentHrEditId = null;
+});
+
+document.getElementById('saveProfileBtn')?.addEventListener('click', () => {
+    alert('Изменения сохранены');
+    document.getElementById('profileModal')?.classList.remove('active');
+});
+
+document.getElementById('confirmFireBtn')?.addEventListener('click', () => {
+    if (currentFireId) {
+        alert('Функция увольнения будет добавлена позже');
+        document.getElementById('fireConfirmModal')?.classList.remove('active');
+        currentFireId = null;
     }
-};
+});
 
-document.getElementById('employeeModal').onclick = (e) => {
-    if (e.target === document.getElementById('employeeModal')) {
-        document.getElementById('employeeModal').classList.remove('active');
-    }
-};
+document.getElementById('phone')?.addEventListener('input', phoneMask);
+document.getElementById('hrPhone')?.addEventListener('input', phoneMask);
+document.getElementById('postalCode')?.addEventListener('input', digitsOnly);
+document.getElementById('hrPostalCode')?.addEventListener('input', digitsOnly);
+document.getElementById('passportSeries')?.addEventListener('input', digitsOnly);
+document.getElementById('passportNumber')?.addEventListener('input', digitsOnly);
+document.getElementById('hrPassportSeries')?.addEventListener('input', digitsOnly);
+document.getElementById('hrPassportNumber')?.addEventListener('input', digitsOnly);
 
-document.getElementById('fireConfirmModal').onclick = (e) => {
-    if (e.target === document.getElementById('fireConfirmModal')) {
-        document.getElementById('fireConfirmModal').classList.remove('active');
-    }
-};
-
-function phoneMask(event) {
-    let input = event.target;
-    let value = input.value.replace(/\D/g, '');
-    let formattedValue = '';
-    
-    if (value.length > 0) {
-        formattedValue = '+7';
-        if (value.length > 1) {
-            formattedValue += ' (' + value.substring(1, 4);
-        }
-        if (value.length >= 4) {
-            formattedValue += ') ' + value.substring(4, 7);
-        }
-        if (value.length >= 7) {
-            formattedValue += '-' + value.substring(7, 9);
-        }
-        if (value.length >= 9) {
-            formattedValue += '-' + value.substring(9, 11);
-        }
-    }
-    
-    input.value = formattedValue;
-}
-
-function digitsOnly(event) {
-    let input = event.target;
-    input.value = input.value.replace(/\D/g, '');
-}
-
-document.getElementById('phone').addEventListener('input', phoneMask);
-document.getElementById('passportSeries').addEventListener('input', digitsOnly);
-document.getElementById('passportNumber').addEventListener('input', digitsOnly);
-document.getElementById('postalCode').addEventListener('input', digitsOnly);
+document.getElementById('lastName')?.addEventListener('input', formatNameInput);
+document.getElementById('firstName')?.addEventListener('input', formatNameInput);
+document.getElementById('middleName')?.addEventListener('input', formatNameInput);
+document.getElementById('hrLastName')?.addEventListener('input', formatNameInput);
+document.getElementById('hrFirstName')?.addEventListener('input', formatNameInput);
+document.getElementById('hrMiddleName')?.addEventListener('input', formatNameInput);
 
 loadUserData();
-loadDepartments();
+loadDepartments('department');
 renderFilters();
 renderCards();
-updateGreeting();
-setInterval(updateGreeting, 3600000);
