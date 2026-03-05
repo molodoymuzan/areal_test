@@ -573,14 +573,25 @@ window.confirmDeleteDepartment = (id) => {
             if (!dept) return;
             
             document.getElementById('confirmMessage').innerText = `Удалить отдел "${dept.name}"?`;
-            document.getElementById('confirmWarning').style.display = 'none';
             
             deleteCallback = () => {
-                alert('Удаление отдела будет добавлено позже');
-                document.getElementById('confirmModal')?.classList.remove('active');
+                fetch('../api/departments.php?action=delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: id })
+                })
+                .then(res => res.json())
+                .then(response => {
+                    if (response.success) {
+                        renderStructure();
+                    } else {
+                        alert(response.error || 'Ошибка при удалении');
+                    }
+                    document.getElementById('confirmModal').classList.remove('active');
+                });
             };
             
-            document.getElementById('confirmModal')?.classList.add('active');
+            document.getElementById('confirmModal').classList.add('active');
         });
 };
 
@@ -592,14 +603,25 @@ window.confirmDeletePosition = (id) => {
             if (!pos) return;
             
             document.getElementById('confirmMessage').innerText = `Удалить должность "${pos.name}"?`;
-            document.getElementById('confirmWarning').style.display = 'none';
             
             deleteCallback = () => {
-                alert('Удаление должности будет добавлено позже');
-                document.getElementById('confirmModal')?.classList.remove('active');
+                fetch('../api/positions.php?action=delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: id })
+                })
+                .then(res => res.json())
+                .then(response => {
+                    if (response.success) {
+                        renderStructure();
+                    } else {
+                        alert(response.error || 'Ошибка при удалении');
+                    }
+                    document.getElementById('confirmModal').classList.remove('active');
+                });
             };
             
-            document.getElementById('confirmModal')?.classList.add('active');
+            document.getElementById('confirmModal').classList.add('active');
         });
 };
 
@@ -813,13 +835,76 @@ document.getElementById('saveHrBtn')?.addEventListener('click', () => {
 });
 
 document.getElementById('saveDepartmentBtn')?.addEventListener('click', () => {
-    alert('Функция сохранения отдела будет добавлена позже');
-    document.getElementById('departmentModal')?.classList.remove('active');
+    const name = document.getElementById('departmentName').value;
+    if (!name) {
+        alert('Введите название отдела');
+        return;
+    }
+    
+    const url = currentDeptEditId ? '../api/departments.php?action=update' : '../api/departments.php?action=create';
+    const data = {
+        id: currentDeptEditId,
+        name: name
+    };
+
+    fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(response => {
+        if (response.success) {
+            document.getElementById('departmentModal').classList.remove('active');
+            renderStructure();
+            loadDepartments('department');
+            loadDepartments('hrDepartment');
+            if (currentTab === 'employees') {
+                renderFilters();
+            }
+        } else {
+            alert('Ошибка при сохранении');
+        }
+    });
 });
 
 document.getElementById('savePositionBtn')?.addEventListener('click', () => {
-    alert('Функция сохранения должности будет добавлена позже');
-    document.getElementById('positionModal')?.classList.remove('active');
+    const name = document.getElementById('positionName').value;
+    const departmentId = document.getElementById('positionDepartmentId').value;
+    
+    if (!name) {
+        alert('Введите название должности');
+        return;
+    }
+    if (!departmentId) {
+        alert('Выберите отдел');
+        return;
+    }
+    
+    const url = currentPosEditId ? '../api/positions.php?action=update' : '../api/positions.php?action=create';
+    const data = {
+        id: currentPosEditId,
+        name: name,
+        department_id: departmentId
+    };
+
+    fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(response => {
+        if (response.success) {
+            document.getElementById('positionModal').classList.remove('active');
+            renderStructure();
+            if (currentTab === 'employees') {
+                renderFilters();
+            }
+        } else {
+            alert('Ошибка при сохранении');
+        }
+    });
 });
 
 document.getElementById('saveProfileBtn')?.addEventListener('click', () => {
