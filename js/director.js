@@ -341,6 +341,9 @@ function renderDepartments(departments) {
         <div class="structure-item" data-id="${dept.id}">
             <div class="structure-item-info">
                 <div class="structure-item-name">${dept.name}</div>
+                <div class="structure-item-meta">
+                    Сотрудников: ${dept.employees_count || 0}
+                </div>
             </div>
             <div class="structure-item-actions">
                 <button class="structure-btn edit" onclick="editDepartment(${dept.id})" title="Редактировать">
@@ -792,10 +795,16 @@ document.getElementById('logoutBtn')?.addEventListener('click', () => {
     }
 });
 
-document.getElementById('saveEmployeeBtn')?.addEventListener('click', () => {
-    alert('Функция сохранения сотрудника будет добавлена позже');
-    document.getElementById('employeeModal')?.classList.remove('active');
-});
+document.getElementById('saveEmployeeBtn').onclick = () => {
+    saveEmployee(currentEditId, 3).then(response => {
+        if (response && response.success) {
+            document.getElementById('employeeModal').classList.remove('active');
+            renderCards();
+        } else {
+            alert('Ошибка при сохранении');
+        }
+    }).catch(() => {});
+};
 
 document.getElementById('saveHrBtn')?.addEventListener('click', () => {
     alert('Функция сохранения HR будет добавлена позже');
@@ -818,13 +827,20 @@ document.getElementById('saveProfileBtn')?.addEventListener('click', () => {
     document.getElementById('profileModal')?.classList.remove('active');
 });
 
-document.getElementById('confirmFireBtn')?.addEventListener('click', () => {
-    if (currentFireId) {
-        alert('Функция увольнения будет добавлена позже');
-        document.getElementById('fireConfirmModal')?.classList.remove('active');
-        currentFireId = null;
-    }
-});
+document.getElementById('confirmFireBtn').onclick = () => {
+    if (!currentFireId) return;
+    fireEmployee(currentFireId).then(response => {
+        if (response.success) {
+            document.getElementById('fireConfirmModal').classList.remove('active');
+            currentFireId = null;
+            if (currentTab === 'employees') {
+                renderCards();
+            } else {
+                renderHrCards();
+            }
+        }
+    });
+};
 
 document.getElementById('confirmDeleteBtn')?.addEventListener('click', () => {
     if (deleteCallback) {

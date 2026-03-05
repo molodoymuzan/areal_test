@@ -323,10 +323,16 @@ document.getElementById('logoutBtn')?.addEventListener('click', () => {
     }
 });
 
-document.getElementById('saveEmployeeBtn')?.addEventListener('click', () => {
-    alert('Функция сохранения сотрудника будет добавлена позже');
-    document.getElementById('employeeModal')?.classList.remove('active');
-});
+document.getElementById('saveEmployeeBtn').onclick = () => {
+    saveEmployee(currentEditId, 3).then(response => {
+        if (response && response.success) {
+            document.getElementById('employeeModal').classList.remove('active');
+            renderCards();
+        } else {
+            alert('Ошибка при сохранении');
+        }
+    }).catch(() => {});
+};
 
 document.getElementById('saveHrBtn')?.addEventListener('click', () => {
     alert('Функция сохранения HR будет добавлена позже');
@@ -339,13 +345,16 @@ document.getElementById('saveProfileBtn')?.addEventListener('click', () => {
     document.getElementById('profileModal')?.classList.remove('active');
 });
 
-document.getElementById('confirmFireBtn')?.addEventListener('click', () => {
-    if (currentFireId) {
-        alert('Функция увольнения будет добавлена позже');
-        document.getElementById('fireConfirmModal')?.classList.remove('active');
-        currentFireId = null;
-    }
-});
+document.getElementById('confirmFireBtn').onclick = () => {
+    if (!currentFireId) return;
+    fireEmployee(currentFireId).then(response => {
+        if (response.success) {
+            document.getElementById('fireConfirmModal').classList.remove('active');
+            currentFireId = null;
+            renderCards();
+        }
+    });
+};
 
 document.getElementById('phone')?.addEventListener('input', phoneMask);
 document.getElementById('hrPhone')?.addEventListener('input', phoneMask);

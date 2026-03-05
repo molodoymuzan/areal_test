@@ -10,7 +10,15 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-$departments = $pdo->query("SELECT * FROM departments ORDER BY name")->fetchAll();
+$departments = $pdo->query("
+    SELECT 
+        d.*,
+        COUNT(u.id) as employees_count
+    FROM departments d
+    LEFT JOIN users u ON u.department_id = d.id AND u.role_id IN (2,3) AND u.status_id = 1
+    GROUP BY d.id
+    ORDER BY d.name
+")->fetchAll();
 
 $positions = $pdo->query("
     SELECT p.*, d.name as department_name 

@@ -1,4 +1,3 @@
-// Общие функции для HR и Director
 
 function getInitials(name) {
     return name.split(' ').map(n => n[0]).join('').substring(0, 2);
@@ -133,4 +132,56 @@ function digitsOnly(event) {
 function formatNameInput(event) {
     let input = event.target;
     input.value = input.value.charAt(0).toUpperCase() + input.value.slice(1).toLowerCase();
+}
+
+function saveEmployee(editId, roleId = 3) {
+    if (!document.getElementById('lastName').value || !document.getElementById('firstName').value) {
+        alert('Заполните фамилию и имя');
+        return Promise.reject();
+    }
+    if (!document.getElementById('department').value) {
+        alert('Выберите отдел');
+        return Promise.reject();
+    }
+    if (!document.getElementById('position').value) {
+        alert('Выберите должность');
+        return Promise.reject();
+    }
+    
+    const url = editId ? '../api/update_employee.php' : '../api/create_employee.php';
+    const data = {
+        id: editId,
+        lastName: document.getElementById('lastName').value,
+        firstName: document.getElementById('firstName').value,
+        middleName: document.getElementById('middleName').value,
+        birthDate: document.getElementById('birthDate').value,
+        hireDate: document.getElementById('hireDate').value,
+        passportSeries: document.getElementById('passportSeries').value,
+        passportNumber: document.getElementById('passportNumber').value,
+        phone: document.getElementById('phone').value,
+        email: document.getElementById('email').value,
+        city: document.getElementById('city').value,
+        street: document.getElementById('street').value,
+        house: document.getElementById('house').value,
+        apartment: document.getElementById('apartment').value,
+        postalCode: document.getElementById('postalCode').value,
+        departmentId: document.getElementById('department').value,
+        positionId: document.getElementById('position').value,
+        salary: document.getElementById('salary').value,
+        roleId: roleId
+    };
+
+    return fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    }).then(res => res.json());
+}
+
+function fireEmployee(fireId) {
+    return fetch('../api/fire_employee.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: fireId })
+    }).then(res => res.json());
 }
