@@ -51,21 +51,24 @@ $hr = $stmt->fetchAll();
 
 foreach ($hr as &$employee) {
     $stmt = $pdo->prepare("
-        SELECT c.type, c.value
-        FROM contacts c
-        JOIN user_contacts uc ON c.id = uc.contact_id
-        WHERE uc.user_id = ?
+        SELECT type, value, is_login 
+        FROM contacts 
+        WHERE user_id = ?
     ");
     $stmt->execute([$employee['id']]);
     $contacts = $stmt->fetchAll();
     
     $employee['phone'] = '';
     $employee['email'] = '';
+    $employee['is_login'] = false;
     foreach ($contacts as $contact) {
         if ($contact['type'] == 'phone') {
             $employee['phone'] = $contact['value'];
         } else if ($contact['type'] == 'email') {
             $employee['email'] = $contact['value'];
+            if ($contact['is_login']) {
+                $employee['is_login'] = true;
+            }
         }
     }
 }

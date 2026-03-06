@@ -37,7 +37,6 @@ if ($method === 'POST') {
         case 'delete':
             $id = $data['id'];
             
-            // Проверяем, есть ли сотрудники на этой должности
             $check = $pdo->prepare("SELECT COUNT(*) FROM users WHERE position_id = ?");
             $check->execute([$id]);
             $count = $check->fetchColumn();

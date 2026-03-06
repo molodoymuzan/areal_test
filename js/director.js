@@ -829,9 +829,79 @@ document.getElementById('saveEmployeeBtn').onclick = () => {
 };
 
 document.getElementById('saveHrBtn')?.addEventListener('click', () => {
-    alert('Функция сохранения HR будет добавлена позже');
-    document.getElementById('hrModal')?.classList.remove('active');
-    currentHrEditId = null;
+    if (document.getElementById('saveHrBtn').textContent === 'Закрыть') {
+        document.getElementById('hrModal').classList.remove('active');
+        document.getElementById('saveHrBtn').textContent = 'Сохранить';
+        document.getElementById('closeHrModal').style.display = 'inline-block';
+        document.getElementById('hrPasswordBlock').style.display = 'none';
+        currentHrEditId = null;
+        renderHrCards();
+        return;
+    }
+    
+    if (!document.getElementById('hrLastName').value) {
+        alert('Введите фамилию');
+        return;
+    }
+    if (!document.getElementById('hrFirstName').value) {
+        alert('Введите имя');
+        return;
+    }
+    if (!document.getElementById('hrEmail').value) {
+        alert('Введите email');
+        return;
+    }
+    
+    const url = currentHrEditId ? '../api/update_employee.php' : '../api/create_employee.php';
+    const data = {
+        id: currentHrEditId,
+        lastName: document.getElementById('hrLastName').value,
+        firstName: document.getElementById('hrFirstName').value,
+        middleName: document.getElementById('hrMiddleName').value,
+        birthDate: document.getElementById('hrBirthDate').value,
+        hireDate: document.getElementById('hrHireDate').value,
+        passportSeries: document.getElementById('hrPassportSeries').value,
+        passportNumber: document.getElementById('hrPassportNumber').value,
+        phone: document.getElementById('hrPhone').value,
+        email: document.getElementById('hrEmail').value,
+        city: document.getElementById('hrCity').value,
+        street: document.getElementById('hrStreet').value,
+        house: document.getElementById('hrHouse').value,
+        apartment: document.getElementById('hrApartment').value,
+        postalCode: document.getElementById('hrPostalCode').value,
+        departmentId: 3,
+        positionId: 4,
+        salary: document.getElementById('hrSalary').value,
+        roleId: 2
+    };
+
+    fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(response => {
+        if (response.success) {
+            if (response.tempPassword) {
+                document.getElementById('hrTempPassword').textContent = response.tempPassword;
+                document.getElementById('hrPasswordBlock').style.display = 'block';
+                
+                document.getElementById('saveHrBtn').textContent = 'Закрыть';
+                document.getElementById('closeHrModal').style.display = 'none';
+                
+                document.querySelectorAll('#hrModal input, #hrModal select').forEach(el => {
+                    el.disabled = true;
+                });
+            } else {
+                document.getElementById('hrModal').classList.remove('active');
+                currentHrEditId = null;
+                renderHrCards();
+            }
+        } else {
+            alert('Ошибка при сохранении');
+        }
+    });
 });
 
 document.getElementById('saveDepartmentBtn')?.addEventListener('click', () => {

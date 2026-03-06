@@ -10,8 +10,6 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-$role_id = $_SESSION['role_id'];
-
 $department_filter = isset($_GET['department']) && $_GET['department'] !== 'all' ? "AND u.department_id = " . intval($_GET['department']) : "";
 $position_filter = isset($_GET['position']) && $_GET['position'] !== 'all' ? "AND u.position_id = " . intval($_GET['position']) : "";
 $search = isset($_GET['search']) ? $_GET['search'] : '';
@@ -28,7 +26,6 @@ $query = "
         u.last_name, u.first_name, u.middle_name,
         u.birth_date, u.hire_date, u.salary,
         u.department_id, u.position_id, u.status_id,
-        u.passport_id, u.address_id,
         d.name as department_name,
         p.name as position_name,
         pass.series as passport_series,
@@ -47,10 +44,9 @@ $employees = $stmt->fetchAll();
 
 foreach ($employees as &$employee) {
     $stmt = $pdo->prepare("
-        SELECT c.type, c.value
-        FROM contacts c
-        JOIN user_contacts uc ON c.id = uc.contact_id
-        WHERE uc.user_id = ?
+        SELECT type, value 
+        FROM contacts 
+        WHERE user_id = ?
     ");
     $stmt->execute([$employee['id']]);
     $contacts = $stmt->fetchAll();

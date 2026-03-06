@@ -15,13 +15,25 @@ $data = json_decode(file_get_contents('php://input'), true);
 try {
     $pdo->beginTransaction();
 
-    $stmt = $pdo->prepare("INSERT INTO passports (series, number) VALUES (?, ?)");
-    $stmt->execute([$data['passportSeries'], $data['passportNumber']]);
-    $passport_id = $pdo->lastInsertId();
+    $passport_id = null;
+    if (!empty($data['passportSeries']) || !empty($data['passportNumber'])) {
+        $stmt = $pdo->prepare("INSERT INTO passports (series, number) VALUES (?, ?)");
+        $stmt->execute([$data['passportSeries'] ?? '', $data['passportNumber'] ?? '']);
+        $passport_id = $pdo->lastInsertId();
+    }
 
-    $stmt = $pdo->prepare("INSERT INTO addresses (city, street, house, apartment, postal_code) VALUES (?, ?, ?, ?, ?)");
-    $stmt->execute([$data['city'], $data['street'], $data['house'], $data['apartment'], $data['postalCode']]);
-    $address_id = $pdo->lastInsertId();
+    $address_id = null;
+    if (!empty($data['city']) || !empty($data['street']) || !empty($data['house'])) {
+        $stmt = $pdo->prepare("INSERT INTO addresses (city, street, house, apartment, postal_code) VALUES (?, ?, ?, ?, ?)");
+        $stmt->execute([
+            $data['city'] ?? '',
+            $data['street'] ?? '',
+            $data['house'] ?? '',
+            $data['apartment'] ?? '',
+            $data['postalCode'] ?? ''
+        ]);
+        $address_id = $pdo->lastInsertId();
+    }
 
     $stmt = $pdo->prepare("
         INSERT INTO users 
@@ -30,33 +42,61 @@ try {
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
     ");
     $stmt->execute([
-        $data['lastName'], $data['firstName'], $data['middleName'],
-        $data['birthDate'], $passport_id, $address_id,
-        $data['departmentId'], $data['positionId'], $data['salary'],
-        $data['hireDate'], $data['roleId']
+        $data['lastName'],
+        $data['firstName'],
+        $data['middleName'] ?? '',
+        $data['birthDate'] ?? null,
+        $passport_id,
+        $address_id,
+        $data['departmentId'],
+        $data['positionId'],
+        $data['salary'] ?? 0,
+        $data['hireDate'] ?? date('Y-m-d'),
+        $data['roleId']
     ]);
     $user_id = $pdo->lastInsertId();
 
     if (!empty($data['phone'])) {
-        $stmt = $pdo->prepare("INSERT INTO contacts (type, value) VALUES ('phone', ?)");
-        $stmt->execute([$data['phone']]);
-        $contact_id = $pdo->lastInsertId();
-        $pdo->prepare("INSERT INTO user_contacts (user_id, contact_id) VALUES (?, ?)")->execute([$user_id, $contact_id]);
+        $stmt = $pdo->prepare("INSERT INTO contacts (user_id, type, value, is_login) VALUES (?, 'phone', ?, 0)");
+        $stmt->execute([$user_id, $data['phone']]);
     }
 
+    $tempPassword = null;
     if (!empty($data['email'])) {
-        $stmt = $pdo->prepare("INSERT INTO contacts (type, value) VALUES ('email', ?)");
-        $stmt->execute([$data['email']]);
+        $is_login = ($data['roleId'] == 2) ? 1 : 0;
+        
+        $stmt = $pdo->prepare("INSERT INTO contacts (user_id, type, value, is_login) VALUES (?, 'email', ?, ?)");
+        $stmt->execute([$user_id, $data['email'], $is_login]);
         $contact_id = $pdo->lastInsertId();
-        $pdo->prepare("INSERT INTO user_contacts (user_id, contact_id) VALUES (?, ?)")->execute([$user_id, $contact_id]);
+        
+        if ($data['roleId'] == 2) {
+            $tempPassword = generateTempPassword();
+            $hash = password_hash($tempPassword, PASSWORD_DEFAULT);
+            
+            $stmt = $pdo->prepare("
+                INSERT INTO auth (contact_id, password_hash, temp_password, password_change_required) 
+                VALUES (?, ?, ?, 1)
+            ");
+            $stmt->execute([$contact_id, $hash, $tempPassword]);
+        }
     }
 
     $pdo->commit();
-    echo json_encode(['success' => true]);
+    
+    echo json_encode([
+        'success' => true, 
+        'user_id' => $user_id,
+        'tempPassword' => $tempPassword
+    ]);
 
 } catch (Exception $e) {
     $pdo->rollBack();
     http_response_code(500);
     echo json_encode(['error' => $e->getMessage()]);
+}
+
+function generateTempPassword($length = 8) {
+    $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    return substr(str_shuffle($chars), 0, $length);
 }
 ?>

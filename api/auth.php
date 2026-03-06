@@ -13,22 +13,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = $data['password'] ?? '';
 
     $stmt = $pdo->prepare("
-        SELECT a.*, u.last_name, u.first_name, u.middle_name, u.role_id 
-        FROM auth a
-        JOIN users u ON a.user_id = u.id
-        WHERE a.login_email = ?
+        SELECT 
+            c.user_id,
+            c.id as contact_id,
+            a.password_hash,
+            a.temp_password,
+            a.password_change_required,
+            u.last_name,
+            u.first_name,
+            u.middle_name,
+            u.role_id
+        FROM contacts c
+        JOIN users u ON c.user_id = u.id
+        LEFT JOIN auth a ON c.id = a.contact_id
+        WHERE c.value = ? AND c.type = 'email' AND c.is_login = 1
     ");
     $stmt->execute([$email]);
     $user = $stmt->fetch();
 
-    if ($user && $password === $user['password_hash']) {
+    if ($user && password_verify($password, $user['password_hash'])) {
+        $stmt = $pdo->prepare("UPDATE auth SET last_login = NOW() WHERE contact_id = ?");
+        $stmt->execute([$user['contact_id']]);
+        
         $_SESSION['user_id'] = $user['user_id'];
         $_SESSION['role_id'] = $user['role_id'];
         $_SESSION['user_name'] = trim($user['last_name'] . ' ' . $user['first_name'] . ' ' . $user['middle_name']);
+        $_SESSION['password_change_required'] = $user['password_change_required'];
 
         echo json_encode([
             'success' => true,
-            'role_id' => $user['role_id']
+            'role_id' => $user['role_id'],
+            'password_change_required' => $user['password_change_required']
         ]);
     } else {
         echo json_encode(['success' => false]);

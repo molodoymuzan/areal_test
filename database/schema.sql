@@ -35,12 +35,6 @@ CREATE TABLE addresses (
     postal_code VARCHAR(6)
 );
 
-CREATE TABLE contacts (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    type ENUM('phone', 'email') NOT NULL,
-    value VARCHAR(255) NOT NULL
-);
-
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     last_name VARCHAR(100) NOT NULL,
@@ -64,19 +58,23 @@ CREATE TABLE users (
     FOREIGN KEY (status_id) REFERENCES statuses(id)
 );
 
-CREATE TABLE user_contacts (
+CREATE TABLE contacts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
-    contact_id INT NOT NULL,
-    PRIMARY KEY (user_id, contact_id),
-    FOREIGN KEY (user_id) REFERENCES users(id),
-    FOREIGN KEY (contact_id) REFERENCES contacts(id)
+    type ENUM('phone', 'email') NOT NULL,
+    value VARCHAR(255) NOT NULL,
+    is_login BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_user_email (user_id, type, value)
 );
 
 CREATE TABLE auth (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL UNIQUE,
-    login_email VARCHAR(255) NOT NULL UNIQUE,
+    contact_id INT NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
+    temp_password VARCHAR(255) NULL,
+    password_change_required TINYINT DEFAULT 0,
     last_login TIMESTAMP NULL,
-    FOREIGN KEY (user_id) REFERENCES users(id)
+    FOREIGN KEY (contact_id) REFERENCES contacts(id) ON DELETE CASCADE
 );

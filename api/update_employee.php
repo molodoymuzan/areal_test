@@ -22,7 +22,12 @@ try {
 
     if ($userData['passport_id']) {
         $stmt = $pdo->prepare("UPDATE passports SET series = ?, number = ? WHERE id = ?");
-        $stmt->execute([$data['passportSeries'], $data['passportNumber'], $userData['passport_id']]);
+        $stmt->execute([$data['passportSeries'] ?? '', $data['passportNumber'] ?? '', $userData['passport_id']]);
+    } else if (!empty($data['passportSeries']) || !empty($data['passportNumber'])) {
+        $stmt = $pdo->prepare("INSERT INTO passports (series, number) VALUES (?, ?)");
+        $stmt->execute([$data['passportSeries'] ?? '', $data['passportNumber'] ?? '']);
+        $passport_id = $pdo->lastInsertId();
+        $pdo->prepare("UPDATE users SET passport_id = ? WHERE id = ?")->execute([$passport_id, $user_id]);
     }
 
     if ($userData['address_id']) {
@@ -32,9 +37,24 @@ try {
             WHERE id = ?
         ");
         $stmt->execute([
-            $data['city'], $data['street'], $data['house'],
-            $data['apartment'], $data['postalCode'], $userData['address_id']
+            $data['city'] ?? '',
+            $data['street'] ?? '',
+            $data['house'] ?? '',
+            $data['apartment'] ?? '',
+            $data['postalCode'] ?? '',
+            $userData['address_id']
         ]);
+    } else if (!empty($data['city']) || !empty($data['street']) || !empty($data['house'])) {
+        $stmt = $pdo->prepare("INSERT INTO addresses (city, street, house, apartment, postal_code) VALUES (?, ?, ?, ?, ?)");
+        $stmt->execute([
+            $data['city'] ?? '',
+            $data['street'] ?? '',
+            $data['house'] ?? '',
+            $data['apartment'] ?? '',
+            $data['postalCode'] ?? ''
+        ]);
+        $address_id = $pdo->lastInsertId();
+        $pdo->prepare("UPDATE users SET address_id = ? WHERE id = ?")->execute([$address_id, $user_id]);
     }
 
     $stmt = $pdo->prepare("
@@ -45,26 +65,28 @@ try {
         WHERE id = ?
     ");
     $stmt->execute([
-        $data['lastName'], $data['firstName'], $data['middleName'],
-        $data['birthDate'], $data['hireDate'], $data['salary'],
-        $data['departmentId'], $data['positionId'],
+        $data['lastName'],
+        $data['firstName'],
+        $data['middleName'] ?? '',
+        $data['birthDate'] ?? null,
+        $data['hireDate'] ?? null,
+        $data['salary'] ?? 0,
+        $data['departmentId'],
+        $data['positionId'],
         $user_id
     ]);
 
-    $pdo->prepare("DELETE FROM user_contacts WHERE user_id = ?")->execute([$user_id]);
+    $pdo->prepare("DELETE FROM contacts WHERE user_id = ?")->execute([$user_id]);
     
     if (!empty($data['phone'])) {
-        $stmt = $pdo->prepare("INSERT INTO contacts (type, value) VALUES ('phone', ?)");
-        $stmt->execute([$data['phone']]);
-        $contact_id = $pdo->lastInsertId();
-        $pdo->prepare("INSERT INTO user_contacts (user_id, contact_id) VALUES (?, ?)")->execute([$user_id, $contact_id]);
+        $stmt = $pdo->prepare("INSERT INTO contacts (user_id, type, value, is_login) VALUES (?, 'phone', ?, 0)");
+        $stmt->execute([$user_id, $data['phone']]);
     }
 
     if (!empty($data['email'])) {
-        $stmt = $pdo->prepare("INSERT INTO contacts (type, value) VALUES ('email', ?)");
-        $stmt->execute([$data['email']]);
-        $contact_id = $pdo->lastInsertId();
-        $pdo->prepare("INSERT INTO user_contacts (user_id, contact_id) VALUES (?, ?)")->execute([$user_id, $contact_id]);
+        $is_login = ($data['roleId'] == 2) ? 1 : 0;
+        $stmt = $pdo->prepare("INSERT INTO contacts (user_id, type, value, is_login) VALUES (?, 'email', ?, ?)");
+        $stmt->execute([$user_id, $data['email'], $is_login]);
     }
 
     $pdo->commit();

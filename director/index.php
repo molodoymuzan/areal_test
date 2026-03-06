@@ -219,108 +219,104 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 1) {
         </div>
     </div>
 
-    <div class="modal-overlay" id="hrModal">
-        <div class="modal">
-            <h2 id="hrModalTitle">Новый HR-сотрудник</h2>
-            
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Фамилия *</label>
-                    <input type="text" id="hrLastName" placeholder="Петрова">
-                </div>
-                <div class="form-group">
-                    <label>Имя *</label>
-                    <input type="text" id="hrFirstName" placeholder="Анна">
-                </div>
-            </div>
-            
+<div class="modal-overlay" id="hrModal">
+    <div class="modal">
+        <h2 id="hrModalTitle">Новый HR-сотрудник</h2>
+        
+        <div class="form-row">
             <div class="form-group">
-                <label>Отчество</label>
-                <input type="text" id="hrMiddleName" placeholder="Сергеевна">
+                <label>Фамилия *</label>
+                <input type="text" id="hrLastName" placeholder="Петрова">
             </div>
-
             <div class="form-group">
-                <label>Email *</label>
-                <input type="email" id="hrEmail" placeholder="anna.hr@company.ru">
-            </div>
-
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Дата рождения</label>
-                    <input type="date" id="hrBirthDate">
-                </div>
-                <div class="form-group">
-                    <label>Дата приёма</label>
-                    <input type="date" id="hrHireDate">
-                </div>
-            </div>
-
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Серия паспорта</label>
-                    <input type="text" id="hrPassportSeries" maxlength="4" placeholder="1234">
-                </div>
-                <div class="form-group">
-                    <label>Номер паспорта</label>
-                    <input type="text" id="hrPassportNumber" maxlength="6" placeholder="567890">
-                </div>
-            </div>
-
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Телефон</label>
-                    <input type="tel" id="hrPhone" placeholder="+7 (999) 123-45-67">
-                </div>
-                <div class="form-group">
-                    <label>Email (повтор)</label>
-                    <input type="email" id="hrEmailConfirm" placeholder="anna.hr@company.ru">
-                </div>
-            </div>
-
-            <div class="address-section">
-                <h4>Адрес проживания</h4>
-                <div class="form-group">
-                    <label>Город</label>
-                    <input type="text" id="hrCity" placeholder="Москва">
-                </div>
-                <div class="form-group">
-                    <label>Улица</label>
-                    <input type="text" id="hrStreet" placeholder="ул. Тверская">
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Дом</label>
-                        <input type="text" id="hrHouse" placeholder="12">
-                    </div>
-                    <div class="form-group">
-                        <label>Квартира</label>
-                        <input type="text" id="hrApartment" placeholder="34">
-                    </div>
-                    <div class="form-group">
-                        <label>Индекс</label>
-                        <input type="text" id="hrPostalCode" placeholder="123456" maxlength="6">
-                    </div>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label>Зарплата (₽)</label>
-                <input type="number" id="hrSalary" placeholder="180000">
-            </div>
-
-            <div id="hrPasswordBlock" style="display: none;">
-                <div class="password-box">
-                    <p>Временный пароль</p>
-                    <div class="password-display" id="hrTempPassword"></div>
-                </div>
-            </div>
-
-            <div class="modal-footer">
-                <button class="btn" id="closeHrModal">Отмена</button>
-                <button class="btn btn-primary" id="saveHrBtn">Сохранить</button>
+                <label>Имя *</label>
+                <input type="text" id="hrFirstName" placeholder="Анна">
             </div>
         </div>
+        
+        <div class="form-group">
+            <label>Отчество</label>
+            <input type="text" id="hrMiddleName" placeholder="Сергеевна">
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>Дата рождения</label>
+                <input type="date" id="hrBirthDate">
+            </div>
+            <div class="form-group">
+                <label>Дата приёма</label>
+                <input type="date" id="hrHireDate">
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>Серия паспорта</label>
+                <input type="text" id="hrPassportSeries" maxlength="4" placeholder="1234">
+            </div>
+            <div class="form-group">
+                <label>Номер паспорта</label>
+                <input type="text" id="hrPassportNumber" maxlength="6" placeholder="567890">
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>Телефон</label>
+                <input type="tel" id="hrPhone" placeholder="+7 (999) 999-99-99">
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="hrEmail" placeholder="employee@company.ru">
+            </div>
+        </div>
+
+        <div class="address-section">
+            <h4>Адрес проживания</h4>
+            <div class="form-group">
+                <label>Город</label>
+                <input type="text" id="hrCity" placeholder="Москва">
+            </div>
+            <div class="form-group">
+                <label>Улица</label>
+                <input type="text" id="hrStreet" placeholder="ул. Тверская">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Дом</label>
+                    <input type="text" id="hrHouse" placeholder="12">
+                </div>
+                <div class="form-group">
+                    <label>Квартира</label>
+                    <input type="text" id="hrApartment" placeholder="34">
+                </div>
+                <div class="form-group">
+                    <label>Индекс</label>
+                    <input type="text" id="hrPostalCode" placeholder="123456" maxlength="6">
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Зарплата (₽)</label>
+            <input type="number" id="hrSalary" placeholder="180000">
+        </div>
+
+        <div id="hrPasswordBlock" style="display: none;">
+            <div class="password-box">
+                <p>Временный пароль</p>
+                <div class="password-display" id="hrTempPassword"></div>
+                <div class="warning">Пароль показывается только один раз</div>
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <button class="btn" id="closeHrModal">Отмена</button>
+            <button class="btn btn-primary" id="saveHrBtn">Сохранить</button>
+        </div>
     </div>
+</div>
 
     <div class="modal-overlay" id="departmentModal">
         <div class="modal">

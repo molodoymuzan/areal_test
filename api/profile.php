@@ -29,18 +29,19 @@ $user = $stmt->fetch();
 
 if ($user) {
     $stmt = $pdo->prepare("
-        SELECT c.type, c.value
-        FROM contacts c
-        JOIN user_contacts uc ON c.id = uc.contact_id
-        WHERE uc.user_id = ?
+        SELECT type, value, is_login 
+        FROM contacts 
+        WHERE user_id = ?
     ");
     $stmt->execute([$user_id]);
     $contacts = $stmt->fetchAll();
     
+    $user['phone'] = '';
+    $user['email'] = '';
     foreach ($contacts as $contact) {
         if ($contact['type'] == 'phone') {
             $user['phone'] = $contact['value'];
-        } else if ($contact['type'] == 'email') {
+        } else if ($contact['type'] == 'email' && !$user['email']) {
             $user['email'] = $contact['value'];
         }
     }

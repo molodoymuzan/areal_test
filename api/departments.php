@@ -45,7 +45,6 @@ if ($method === 'POST') {
                 exit;
             }
             
-            // Проверяем, есть ли должности в отделе
             $check = $pdo->prepare("SELECT COUNT(*) FROM positions WHERE department_id = ?");
             $check->execute([$id]);
             $count = $check->fetchColumn();
