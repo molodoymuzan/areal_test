@@ -64,14 +64,20 @@ function loadUserData() {
         });
 }
 
-function loadDepartments(selectId = 'department') {
+function loadDepartments(selectId = 'department', excludeHr = false) {
     fetch('../api/structure.php')
         .then(res => res.json())
         .then(data => {
             const deptSelect = document.getElementById(selectId);
             if (deptSelect) {
                 let options = '<option value="">Выберите отдел</option>';
-                data.departments.forEach(d => {
+                
+                let departments = data.departments;
+                if (excludeHr) {
+                    departments = departments.filter(d => d.id != 3);
+                }
+                
+                departments.forEach(d => {
                     options += `<option value="${d.id}">${d.name}</option>`;
                 });
                 deptSelect.innerHTML = options;

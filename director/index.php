@@ -299,6 +299,14 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 1) {
         </div>
 
         <div class="form-group">
+            <label>Должность</label>
+            <select id="hrPosition">
+                <option value="4">HR Generalist</option>
+                <option value="7">Руководитель HR</option>
+            </select>
+        </div>
+
+        <div class="form-group">
             <label>Зарплата (₽)</label>
             <input type="number" id="hrSalary" placeholder="180000">
         </div>

@@ -52,8 +52,10 @@ function renderFilters() {
                 deptOptions += `<option value="${d.id}">${d.name}</option>`;
             });
             
+            const employeePositions = data.positions.filter(p => p.department_id != 3);
+            
             let posOptions = '<option value="all">Все должности</option>';
-            data.positions.forEach(p => {
+            employeePositions.forEach(p => {
                 posOptions += `<option value="${p.id}">${p.name}</option>`;
             });
             
@@ -84,28 +86,44 @@ function renderFilters() {
 }
 
 function renderHrFilters() {
-    const filtersEl = document.getElementById('filtersSection');
-    if (filtersEl) {
-        filtersEl.innerHTML = `
-            <div class="filter-item">
-                <label>Статус</label>
-                <select id="statusFilter">
-                    <option value="all">Все</option>
-                    <option value="active">Работает</option>
-                    <option value="dismissed">Уволен</option>
-                </select>
-            </div>
-            <div class="filter-item">
-                <label>Поиск</label>
-                <input type="text" id="searchInput" placeholder="ФИО...">
-            </div>
-            <button class="btn-reset" id="resetBtn">Сбросить</button>
-        `;
-    }
-    
-    document.getElementById('resetBtn')?.addEventListener('click', resetHrFilters);
-    document.getElementById('searchInput')?.addEventListener('input', renderHrCards);
-    document.getElementById('statusFilter')?.addEventListener('change', renderHrCards);
+    fetch('../api/structure.php')
+        .then(res => res.json())
+        .then(data => {
+            const hrPositions = data.positions.filter(p => p.department_id == 3);
+            
+            let posOptions = '<option value="all">Все должности</option>';
+            hrPositions.forEach(p => {
+                posOptions += `<option value="${p.id}">${p.name}</option>`;
+            });
+            
+            const filtersEl = document.getElementById('filtersSection');
+            if (filtersEl) {
+                filtersEl.innerHTML = `
+                    <div class="filter-item">
+                        <label>Статус</label>
+                        <select id="statusFilter">
+                            <option value="all">Все</option>
+                            <option value="active">Работает</option>
+                            <option value="dismissed">Уволен</option>
+                        </select>
+                    </div>
+                    <div class="filter-item">
+                        <label>Должность</label>
+                        <select id="hrPositionFilter">${posOptions}</select>
+                    </div>
+                    <div class="filter-item">
+                        <label>Поиск</label>
+                        <input type="text" id="searchInput" placeholder="ФИО...">
+                    </div>
+                    <button class="btn-reset" id="resetBtn">Сбросить</button>
+                `;
+            }
+            
+            document.getElementById('resetBtn')?.addEventListener('click', resetHrFilters);
+            document.getElementById('searchInput')?.addEventListener('input', renderHrCards);
+            document.getElementById('statusFilter')?.addEventListener('change', renderHrCards);
+            document.getElementById('hrPositionFilter')?.addEventListener('change', renderHrCards);
+        });
 }
 
 function resetFilters() {
@@ -122,9 +140,11 @@ function resetFilters() {
 
 function resetHrFilters() {
     const statusFilter = document.getElementById('statusFilter');
+    const positionFilter = document.getElementById('hrPositionFilter');
     const searchInput = document.getElementById('searchInput');
     
     if (statusFilter) statusFilter.value = 'all';
+    if (positionFilter) positionFilter.value = 'all';
     if (searchInput) searchInput.value = '';
     
     renderHrCards();
@@ -219,9 +239,10 @@ function renderCards() {
 
 function renderHrCards() {
     const statusFilter = document.getElementById('statusFilter')?.value || 'all';
+    const positionFilter = document.getElementById('hrPositionFilter')?.value || 'all';
     const search = document.getElementById('searchInput')?.value || '';
     
-    fetch(`../api/hr.php?status=${statusFilter}&search=${search}`)
+    fetch(`../api/hr.php?status=${statusFilter}&position=${positionFilter}&search=${search}`)
         .then(res => res.json())
         .then(hr => {
             let html = '';
@@ -412,10 +433,6 @@ document.getElementById('departmentFilterForPositions')?.addEventListener('chang
 
 document.getElementById('department')?.addEventListener('change', function() {
     updatePositionSelect(this.value, 'position');
-});
-
-document.getElementById('hrDepartment')?.addEventListener('change', function() {
-    updatePositionSelect(this.value, 'hrPosition');
 });
 
 window.editEmployee = (id) => {
@@ -671,7 +688,9 @@ document.getElementById('addBtn')?.addEventListener('click', () => {
         if (fields.apartment) fields.apartment.value = '';
         if (fields.postalCode) fields.postalCode.value = '';
         if (fields.department) fields.department.value = '';
-        if (fields.position) fields.position.innerHTML = '<option value="">Выберите должность</option>';
+        if (fields.position && fields.position.id !== 'hrPosition') {
+            fields.position.innerHTML = '<option value="">Выберите должность</option>';
+        }
         if (fields.salary) fields.salary.value = '';
         
         document.getElementById('employeeModal')?.classList.add('active');
@@ -716,7 +735,6 @@ document.getElementById('addBtn')?.addEventListener('click', () => {
         if (fields.apartment) fields.apartment.value = '';
         if (fields.postalCode) fields.postalCode.value = '';
         if (fields.department) fields.department.value = '';
-        if (fields.position) fields.position.innerHTML = '<option value="">Выберите должность</option>';
         if (fields.salary) fields.salary.value = '';
         
         document.getElementById('hrPasswordBlock').style.display = 'none';
@@ -851,6 +869,17 @@ document.getElementById('saveHrBtn')?.addEventListener('click', () => {
         alert('Введите email');
         return;
     }
+    if (!document.getElementById('hrPosition').value) {
+        alert('Выберите должность');
+        return;
+    }
+    
+    const positionId = parseInt(document.getElementById('hrPosition').value);
+    let roleId = 2;
+    
+    if (positionId === 7) {
+        roleId = 1;
+    }
     
     const url = currentHrEditId ? '../api/update_employee.php' : '../api/create_employee.php';
     const data = {
@@ -870,9 +899,9 @@ document.getElementById('saveHrBtn')?.addEventListener('click', () => {
         apartment: document.getElementById('hrApartment').value,
         postalCode: document.getElementById('hrPostalCode').value,
         departmentId: 3,
-        positionId: 4,
+        positionId: positionId,
         salary: document.getElementById('hrSalary').value,
-        roleId: 2
+        roleId: roleId
     };
 
     fetch(url, {
@@ -886,7 +915,6 @@ document.getElementById('saveHrBtn')?.addEventListener('click', () => {
             if (response.tempPassword) {
                 document.getElementById('hrTempPassword').textContent = response.tempPassword;
                 document.getElementById('hrPasswordBlock').style.display = 'block';
-                
                 document.getElementById('saveHrBtn').textContent = 'Закрыть';
                 document.getElementById('closeHrModal').style.display = 'none';
                 
@@ -896,7 +924,9 @@ document.getElementById('saveHrBtn')?.addEventListener('click', () => {
             } else {
                 document.getElementById('hrModal').classList.remove('active');
                 currentHrEditId = null;
-                renderHrCards();
+                if (roleId === 2) {
+                    renderHrCards();
+                }
             }
         } else {
             alert('Ошибка при сохранении');
@@ -1021,6 +1051,5 @@ document.getElementById('hrFirstName')?.addEventListener('input', formatNameInpu
 document.getElementById('hrMiddleName')?.addEventListener('input', formatNameInput);
 
 loadUserData();
-loadDepartments('department');
-loadDepartments('hrDepartment');
+loadDepartments('department', true);
 showTab('employees');

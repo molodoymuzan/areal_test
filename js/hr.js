@@ -373,6 +373,6 @@ document.getElementById('hrFirstName')?.addEventListener('input', formatNameInpu
 document.getElementById('hrMiddleName')?.addEventListener('input', formatNameInput);
 
 loadUserData();
-loadDepartments('department');
+loadDepartments('department', true);
 renderFilters();
 renderCards();

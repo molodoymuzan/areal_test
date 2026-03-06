@@ -12,6 +12,15 @@ if (!isset($_SESSION['user_id'])) {
 
 $data = json_decode(file_get_contents('php://input'), true);
 
+if (!empty($data['email'])) {
+    $checkEmail = $pdo->prepare("SELECT id FROM contacts WHERE value = ? AND type = 'email'");
+    $checkEmail->execute([$data['email']]);
+    if ($checkEmail->fetch()) {
+        echo json_encode(['success' => false, 'error' => 'Этот email уже используется']);
+        exit;
+    }
+}
+
 try {
     $pdo->beginTransaction();
 
@@ -69,7 +78,7 @@ try {
         $stmt->execute([$user_id, $data['email'], $is_login]);
         $contact_id = $pdo->lastInsertId();
         
-        if ($data['roleId'] == 2) {
+    if ($data['roleId'] == 2 || $data['roleId'] == 1) {
             $tempPassword = generateTempPassword();
             $hash = password_hash($tempPassword, PASSWORD_DEFAULT);
             

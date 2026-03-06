@@ -13,12 +13,31 @@ if (!isset($_SESSION['user_id'])) {
 $data = json_decode(file_get_contents('php://input'), true);
 $user_id = $data['id'];
 
+if (!empty($data['email'])) {
+    $oldEmail = $pdo->prepare("SELECT id, value FROM contacts WHERE user_id = ? AND type = 'email'");
+    $oldEmail->execute([$user_id]);
+    $oldEmailData = $oldEmail->fetch();
+    
+    if (!$oldEmailData || $oldEmailData['value'] !== $data['email']) {
+        $checkEmail = $pdo->prepare("SELECT id FROM contacts WHERE value = ? AND type = 'email' AND user_id != ?");
+        $checkEmail->execute([$data['email'], $user_id]);
+        if ($checkEmail->fetch()) {
+            echo json_encode(['success' => false, 'error' => 'Этот email уже используется']);
+            exit;
+        }
+    }
+}
+
 try {
     $pdo->beginTransaction();
 
-    $user = $pdo->prepare("SELECT passport_id, address_id FROM users WHERE id = ?");
+    $user = $pdo->prepare("SELECT passport_id, address_id, role_id FROM users WHERE id = ?");
     $user->execute([$user_id]);
     $userData = $user->fetch();
+
+    $oldEmail = $pdo->prepare("SELECT id, value FROM contacts WHERE user_id = ? AND type = 'email'");
+    $oldEmail->execute([$user_id]);
+    $oldEmailData = $oldEmail->fetch();
 
     if ($userData['passport_id']) {
         $stmt = $pdo->prepare("UPDATE passports SET series = ?, number = ? WHERE id = ?");
@@ -76,17 +95,33 @@ try {
         $user_id
     ]);
 
-    $pdo->prepare("DELETE FROM contacts WHERE user_id = ?")->execute([$user_id]);
-    
+    $pdo->prepare("DELETE FROM contacts WHERE user_id = ? AND type = 'phone'")->execute([$user_id]);
     if (!empty($data['phone'])) {
         $stmt = $pdo->prepare("INSERT INTO contacts (user_id, type, value, is_login) VALUES (?, 'phone', ?, 0)");
         $stmt->execute([$user_id, $data['phone']]);
     }
 
     if (!empty($data['email'])) {
-        $is_login = ($data['roleId'] == 2) ? 1 : 0;
-        $stmt = $pdo->prepare("INSERT INTO contacts (user_id, type, value, is_login) VALUES (?, 'email', ?, ?)");
-        $stmt->execute([$user_id, $data['email'], $is_login]);
+        if ($oldEmailData && $oldEmailData['value'] !== $data['email']) {
+            $stmt = $pdo->prepare("UPDATE contacts SET value = ? WHERE id = ?");
+            $stmt->execute([$data['email'], $oldEmailData['id']]);
+        } else if (!$oldEmailData) {
+            $is_login = ($data['roleId'] == 2) ? 1 : 0;
+            $stmt = $pdo->prepare("INSERT INTO contacts (user_id, type, value, is_login) VALUES (?, 'email', ?, ?)");
+            $stmt->execute([$user_id, $data['email'], $is_login]);
+            
+            if ($data['roleId'] == 2) {
+                $contact_id = $pdo->lastInsertId();
+                $tempPassword = generateTempPassword();
+                $hash = password_hash($tempPassword, PASSWORD_DEFAULT);
+                
+                $stmt = $pdo->prepare("
+                    INSERT INTO auth (contact_id, password_hash, temp_password, password_change_required) 
+                    VALUES (?, ?, ?, 1)
+                ");
+                $stmt->execute([$contact_id, $hash, $tempPassword]);
+            }
+        }
     }
 
     $pdo->commit();
@@ -96,5 +131,10 @@ try {
     $pdo->rollBack();
     http_response_code(500);
     echo json_encode(['error' => $e->getMessage()]);
+}
+
+function generateTempPassword($length = 8) {
+    $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    return substr(str_shuffle($chars), 0, $length);
 }
 ?>

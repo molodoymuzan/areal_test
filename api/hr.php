@@ -19,12 +19,20 @@ if (isset($_GET['status']) && $_GET['status'] !== 'all') {
     }
 }
 
+// Фильтр по должности
+$position_filter = "";
+if (isset($_GET['position']) && $_GET['position'] !== 'all') {
+    $position_filter = "AND u.position_id = " . intval($_GET['position']);
+}
+
 $search = isset($_GET['search']) ? $_GET['search'] : '';
 
 $search_filter = "";
 if ($search) {
     $search_filter = "AND CONCAT(u.last_name, ' ', u.first_name, ' ', COALESCE(u.middle_name, '')) LIKE '%" . addslashes($search) . "%'";
 }
+
+$current_user_id = $_SESSION['user_id'];
 
 $query = "
     SELECT 
@@ -43,10 +51,11 @@ $query = "
     LEFT JOIN positions p ON u.position_id = p.id
     LEFT JOIN passports pass ON u.passport_id = pass.id
     LEFT JOIN addresses addr ON u.address_id = addr.id
-    WHERE u.role_id = 2 $status_filter $search_filter
+    WHERE u.role_id IN (1,2) AND u.id != ? $status_filter $position_filter $search_filter
 ";
 
-$stmt = $pdo->query($query);
+$stmt = $pdo->prepare($query);
+$stmt->execute([$current_user_id]);
 $hr = $stmt->fetchAll();
 
 foreach ($hr as &$employee) {
