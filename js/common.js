@@ -191,3 +191,155 @@ function fireEmployee(fireId) {
         body: JSON.stringify({ id: fireId })
     }).then(res => res.json());
 }
+function updateProfile(profileData) {
+    return fetch('../api/update_profile.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(profileData)
+    }).then(res => res.json());
+}
+
+function changePassword(passwordData) {
+    return fetch('../api/change_password.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(passwordData)
+    }).then(res => res.json());
+}
+
+function showNotification(message, type = 'success') {
+    const oldNotification = document.querySelector('.notification');
+    if (oldNotification) oldNotification.remove();
+
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.innerHTML = `
+        <div class="notification-content">
+            <span class="notification-icon">${type === 'success' ? '✓' : '⚠'}</span>
+            <span class="notification-message">${message}</span>
+        </div>
+    `;
+
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+        notification.style.animation = 'fadeOut 0.3s ease forwards';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+
+function loadProfileData(data) {
+    document.getElementById('profileFullName').textContent = data.full_name || 'Не указано';
+    document.getElementById('profileInitials').textContent = getInitials(data.full_name || 'Пользователь');
+    
+    document.getElementById('profileLastName').value = data.last_name || '';
+    document.getElementById('profileFirstName').value = data.first_name || '';
+    document.getElementById('profileMiddleName').value = data.middle_name || '';
+    document.getElementById('profileBirthDate').value = data.birth_date || '';
+    document.getElementById('profileHireDate').value = data.hire_date || '';
+    document.getElementById('profilePassportSeries').value = data.passport_series || '';
+    document.getElementById('profilePassportNumber').value = data.passport_number || '';
+    document.getElementById('profilePhone').value = data.phone || '';
+    document.getElementById('profileEmail').value = data.email || '';
+    document.getElementById('profileCity').value = data.city || '';
+    document.getElementById('profileStreet').value = data.street || '';
+    document.getElementById('profileHouse').value = data.house || '';
+    document.getElementById('profileApartment').value = data.apartment || '';
+    document.getElementById('profilePostalCode').value = data.postal_code || '';
+    
+    document.getElementById('profileDepartment').value = data.department_name || '—';
+    document.getElementById('profilePosition').value = data.position_name || '—';
+    document.getElementById('profileSalary').value = data.salary ? Number(data.salary).toLocaleString() + ' ₽' : '—';
+}
+
+function handleProfileSave() {
+    const profileData = {
+        lastName: document.getElementById('profileLastName').value,
+        firstName: document.getElementById('profileFirstName').value,
+        middleName: document.getElementById('profileMiddleName').value,
+        birthDate: document.getElementById('profileBirthDate').value,
+        passportSeries: document.getElementById('profilePassportSeries').value,
+        passportNumber: document.getElementById('profilePassportNumber').value,
+        phone: document.getElementById('profilePhone').value,
+        email: document.getElementById('profileEmail').value,
+        city: document.getElementById('profileCity').value,
+        street: document.getElementById('profileStreet').value,
+        house: document.getElementById('profileHouse').value,
+        apartment: document.getElementById('profileApartment').value,
+        postalCode: document.getElementById('profilePostalCode').value
+    };
+
+    if (!profileData.lastName || !profileData.firstName) {
+        showNotification('Заполните фамилию и имя', 'error');
+        return;
+    }
+
+    updateProfile(profileData)
+        .then(response => {
+            if (!response.success) {
+                showNotification(response.error || 'Ошибка при сохранении', 'error');
+                return;
+            }
+            
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (!currentPassword && !newPassword && !confirmPassword) {
+                showNotification('Данные успешно сохранены', 'success');
+                document.getElementById('profileModal').classList.remove('active');
+                loadUserData();
+                return;
+            }
+
+            if (!currentPassword) {
+                showNotification('Введите текущий пароль', 'error');
+                return;
+            }
+            if (!newPassword || !confirmPassword) {
+                showNotification('Заполните все поля пароля', 'error');
+                return;
+            }
+            if (newPassword !== confirmPassword) {
+                showNotification('Новые пароли не совпадают', 'error');
+                return;
+            }
+            if (newPassword.length < 8) {
+                showNotification('Пароль должен быть минимум 8 символов', 'error');
+                return;
+            }
+
+            changePassword({
+                currentPassword: currentPassword,
+                newPassword: newPassword,
+                confirmPassword: confirmPassword
+            })
+            .then(passResponse => {
+                if (passResponse.success) {
+                    showNotification('Данные и пароль успешно сохранены', 'success');
+                    document.getElementById('currentPassword').value = '';
+                    document.getElementById('newPassword').value = '';
+                    document.getElementById('confirmPassword').value = '';
+                    document.getElementById('profileModal').classList.remove('active');
+                    loadUserData();
+                } else {
+                    showNotification(passResponse.error || 'Ошибка при смене пароля', 'error');
+                }
+            });
+        })
+        .catch(() => showNotification('Ошибка сервера', 'error'));
+}
+
+function loadStructureData() {
+    return fetch('../api/structure.php').then(res => res.json());
+}
+
+function formatAddress(e) {
+    const parts = [];
+    if (e.city) parts.push(e.city);
+    if (e.street) parts.push(e.street);
+    if (e.house) parts.push('д. ' + e.house);
+    if (e.apartment) parts.push('кв. ' + e.apartment);
+    if (e.postal_code) parts.push('(' + e.postal_code + ')');
+    return parts.join(', ') || '—';
+}

@@ -17,11 +17,14 @@ $stmt = $pdo->prepare("
         u.*,
         a.city, a.street, a.house, a.apartment, a.postal_code,
         d.name as department_name,
-        p.name as position_name
+        p.name as position_name,
+        pass.series as passport_series,
+        pass.number as passport_number
     FROM users u
     LEFT JOIN addresses a ON u.address_id = a.id
     LEFT JOIN departments d ON u.department_id = d.id
     LEFT JOIN positions p ON u.position_id = p.id
+    LEFT JOIN passports pass ON u.passport_id = pass.id
     WHERE u.id = ?
 ");
 $stmt->execute([$user_id]);

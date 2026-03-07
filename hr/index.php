@@ -75,32 +75,125 @@ if ($_SESSION['role_id'] != 2) {
     </div>
 
     <div class="modal-overlay" id="profileModal">
-        <div class="modal">
-            <h2>Личный кабинет</h2>
-            <div class="profile-header">
-                <div class="profile-avatar-large" id="profileInitials"></div>
-                <div class="profile-info">
-                    <div class="profile-name" id="profileFullName"></div>
-                    <div class="profile-role">HR-специалист</div>
-                </div>
-            </div>
-            <div class="profile-grid" id="profileFields"></div>
-            <div class="password-section">
-                <h4>Смена пароля</h4>
-                <div class="password-field">
-                    <input type="password" id="currentPassword" placeholder="Текущий пароль">
-                </div>
-                <div class="password-row">
-                    <input type="password" id="newPassword" placeholder="Новый пароль">
-                    <input type="password" id="confirmPassword" placeholder="Подтверждение">
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn" id="closeProfileBtn">Отмена</button>
-                <button class="btn btn-primary" id="saveProfileBtn">Сохранить изменения</button>
+    <div class="modal" style="max-width: 700px;">
+        <h2>Личный кабинет</h2>
+        
+        <div class="profile-header">
+            <div class="profile-avatar-large" id="profileInitials"></div>
+            <div class="profile-info">
+                <div class="profile-name" id="profileFullName"></div>
+                <div class="profile-role">HR-специалист</div>
             </div>
         </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>Фамилия *</label>
+                <input type="text" id="profileLastName" placeholder="Иванов">
+            </div>
+            <div class="form-group">
+                <label>Имя *</label>
+                <input type="text" id="profileFirstName" placeholder="Иван">
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label>Отчество</label>
+            <input type="text" id="profileMiddleName" placeholder="Иванович">
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>Дата рождения</label>
+                <input type="date" id="profileBirthDate">
+            </div>
+            <div class="form-group">
+                <label>Дата приёма</label>
+                <input type="date" id="profileHireDate" readonly style="background: #f1f5f9; cursor: default;">
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>Серия паспорта</label>
+                <input type="text" id="profilePassportSeries" maxlength="4" placeholder="1234">
+            </div>
+            <div class="form-group">
+                <label>Номер паспорта</label>
+                <input type="text" id="profilePassportNumber" maxlength="6" placeholder="567890">
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>Телефон</label>
+                <input type="tel" id="profilePhone" placeholder="+7 (999) 999-99-99">
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="profileEmail" placeholder="hr@company.ru">
+            </div>
+        </div>
+
+        <div class="address-section">
+            <h4>Адрес проживания</h4>
+            <div class="form-group">
+                <label>Город</label>
+                <input type="text" id="profileCity" placeholder="Москва">
+            </div>
+            <div class="form-group">
+                <label>Улица</label>
+                <input type="text" id="profileStreet" placeholder="ул. Тверская">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Дом</label>
+                    <input type="text" id="profileHouse" placeholder="12">
+                </div>
+                <div class="form-group">
+                    <label>Квартира</label>
+                    <input type="text" id="profileApartment" placeholder="34">
+                </div>
+                <div class="form-group">
+                    <label>Индекс</label>
+                    <input type="text" id="profilePostalCode" placeholder="123456" maxlength="6">
+                </div>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>Отдел</label>
+                <input type="text" id="profileDepartment" readonly style="background: #f1f5f9; cursor: default;" value="—">
+            </div>
+            <div class="form-group">
+                <label>Должность</label>
+                <input type="text" id="profilePosition" readonly style="background: #f1f5f9; cursor: default;" value="—">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Зарплата (₽)</label>
+            <input type="text" id="profileSalary" readonly style="background: #f1f5f9; cursor: default;" value="—">
+        </div>
+
+        <div class="password-section">
+            <h4>Смена пароля</h4>
+            <div class="password-field">
+                <input type="password" id="currentPassword" placeholder="Текущий пароль">
+            </div>
+            <div class="password-row">
+                <input type="password" id="newPassword" placeholder="Новый пароль">
+                <input type="password" id="confirmPassword" placeholder="Подтверждение">
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <button class="btn" id="closeProfileBtn">Отмена</button>
+            <button class="btn btn-primary" id="saveProfileBtn">Сохранить изменения</button>
+        </div>
     </div>
+</div>
 
     <div class="modal-overlay" id="employeeModal">
         <div class="modal">

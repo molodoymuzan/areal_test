@@ -1,6 +1,5 @@
 let currentEditId = null;
 let currentFireId = null;
-let currentHrEditId = null;
 
 function renderFilters() {
     fetch('../api/structure.php')
@@ -69,13 +68,7 @@ function renderCards() {
                 const statusText = e.status_id == 2 ? 'УВОЛЕН' : 'РАБОТАЕТ';
                 const cardClass = e.status_id == 2 ? 'card dismissed' : 'card';
                 
-                const addressParts = [];
-                if (e.city) addressParts.push(e.city);
-                if (e.street) addressParts.push(e.street);
-                if (e.house) addressParts.push('д. ' + e.house);
-                if (e.apartment) addressParts.push('кв. ' + e.apartment);
-                if (e.postal_code) addressParts.push('(' + e.postal_code + ')');
-                const addressText = addressParts.join(', ') || '—';
+                const addressText = formatAddress(e);
                 
                 html += `
                     <div class="${cardClass}" data-id="${e.id}">
@@ -275,27 +268,12 @@ document.getElementById('profileBtn')?.addEventListener('click', () => {
     fetch('../api/profile.php')
         .then(res => res.json())
         .then(data => {
-            document.getElementById('profileFullName').textContent = data.full_name || 'Не указано';
-            
-            const fields = [
-                { label: 'Фамилия', value: data.last_name || 'Не указана' },
-                { label: 'Имя', value: data.first_name || 'Не указано' },
-                { label: 'Отчество', value: data.middle_name || 'Не указано' },
-                { label: 'Отдел', value: data.department_name || 'Не указан' },
-                { label: 'Должность', value: data.position_name || 'Не указана' },
-                { label: 'Телефон', value: data.phone || 'Не указан' },
-                { label: 'Email', value: data.email || 'Не указан' }
-            ];
-
-            const fieldsHtml = fields.map(f => `
-                <div class="profile-field">
-                    <label>${f.label}</label>
-                    <input type="text" value="${f.value}" readonly>
-                </div>
-            `).join('');
-
-            document.getElementById('profileFields').innerHTML = fieldsHtml;
-            document.getElementById('profileModal')?.classList.add('active');
+            loadProfileData(data);
+            document.getElementById('profileModal').classList.add('active');
+        })
+        .catch(error => {
+            console.error('Ошибка загрузки профиля:', error);
+            showNotification('Ошибка при загрузке данных профиля', 'error');
         });
 });
 
@@ -305,11 +283,6 @@ document.getElementById('closeProfileBtn')?.addEventListener('click', () => {
 
 document.getElementById('closeEmployeeBtn')?.addEventListener('click', () => {
     document.getElementById('employeeModal')?.classList.remove('active');
-});
-
-document.getElementById('closeHrModal')?.addEventListener('click', () => {
-    document.getElementById('hrModal')?.classList.remove('active');
-    currentHrEditId = null;
 });
 
 document.getElementById('cancelFireBtn')?.addEventListener('click', () => {
@@ -334,16 +307,7 @@ document.getElementById('saveEmployeeBtn').onclick = () => {
     }).catch(() => {});
 };
 
-document.getElementById('saveHrBtn')?.addEventListener('click', () => {
-    alert('Функция сохранения HR будет добавлена позже');
-    document.getElementById('hrModal')?.classList.remove('active');
-    currentHrEditId = null;
-});
-
-document.getElementById('saveProfileBtn')?.addEventListener('click', () => {
-    alert('Изменения сохранены');
-    document.getElementById('profileModal')?.classList.remove('active');
-});
+document.getElementById('saveProfileBtn')?.addEventListener('click', handleProfileSave);
 
 document.getElementById('confirmFireBtn').onclick = () => {
     if (!currentFireId) return;

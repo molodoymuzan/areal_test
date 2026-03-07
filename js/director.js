@@ -165,13 +165,7 @@ function renderCards() {
                 const statusText = e.status_id == 2 ? 'УВОЛЕН' : 'РАБОТАЕТ';
                 const cardClass = e.status_id == 2 ? 'card dismissed' : 'card';
                 
-                const addressParts = [];
-                if (e.city) addressParts.push(e.city);
-                if (e.street) addressParts.push(e.street);
-                if (e.house) addressParts.push('д. ' + e.house);
-                if (e.apartment) addressParts.push('кв. ' + e.apartment);
-                if (e.postal_code) addressParts.push('(' + e.postal_code + ')');
-                const addressText = addressParts.join(', ') || '—';
+                const addressText = formatAddress(e);
                 
                 html += `
                     <div class="${cardClass}" data-id="${e.id}">
@@ -252,13 +246,7 @@ function renderHrCards() {
                 const statusText = e.status_id == 2 ? 'УВОЛЕН' : 'РАБОТАЕТ';
                 const cardClass = e.status_id == 2 ? 'card dismissed' : 'card';
                 
-                const addressParts = [];
-                if (e.city) addressParts.push(e.city);
-                if (e.street) addressParts.push(e.street);
-                if (e.house) addressParts.push('д. ' + e.house);
-                if (e.apartment) addressParts.push('кв. ' + e.apartment);
-                if (e.postal_code) addressParts.push('(' + e.postal_code + ')');
-                const addressText = addressParts.join(', ') || '—';
+                const addressText = formatAddress(e);
                 
                 html += `
                     <div class="${cardClass}" data-id="${e.id}">
@@ -602,7 +590,7 @@ window.confirmDeleteDepartment = (id) => {
                     if (response.success) {
                         renderStructure();
                     } else {
-                        alert(response.error || 'Ошибка при удалении');
+                        showNotification(response.error || 'Ошибка при удалении', 'error');
                     }
                     document.getElementById('confirmModal').classList.remove('active');
                 });
@@ -632,7 +620,7 @@ window.confirmDeletePosition = (id) => {
                     if (response.success) {
                         renderStructure();
                     } else {
-                        alert(response.error || 'Ошибка при удалении');
+                        showNotification(response.error || 'Ошибка при удалении', 'error');
                     }
                     document.getElementById('confirmModal').classList.remove('active');
                 });
@@ -774,27 +762,12 @@ document.getElementById('profileBtn')?.addEventListener('click', () => {
     fetch('../api/profile.php')
         .then(res => res.json())
         .then(data => {
-            document.getElementById('profileFullName').textContent = data.full_name || 'Не указано';
-            
-            const fields = [
-                { label: 'Фамилия', value: data.last_name || 'Не указана' },
-                { label: 'Имя', value: data.first_name || 'Не указано' },
-                { label: 'Отчество', value: data.middle_name || 'Не указано' },
-                { label: 'Отдел', value: data.department_name || 'Не указан' },
-                { label: 'Должность', value: data.position_name || 'Не указана' },
-                { label: 'Телефон', value: data.phone || 'Не указан' },
-                { label: 'Email', value: data.email || 'Не указан' }
-            ];
-
-            const fieldsHtml = fields.map(f => `
-                <div class="profile-field">
-                    <label>${f.label}</label>
-                    <input type="text" value="${f.value}" readonly>
-                </div>
-            `).join('');
-
-            document.getElementById('profileFields').innerHTML = fieldsHtml;
-            document.getElementById('profileModal')?.classList.add('active');
+            loadProfileData(data);
+            document.getElementById('profileModal').classList.add('active');
+        })
+        .catch(error => {
+            console.error('Ошибка загрузки профиля:', error);
+            showNotification('Ошибка при загрузке данных профиля', 'error');
         });
 });
 
@@ -841,7 +814,7 @@ document.getElementById('saveEmployeeBtn').onclick = () => {
             document.getElementById('employeeModal').classList.remove('active');
             renderCards();
         } else {
-            alert('Ошибка при сохранении');
+            showNotification('Ошибка при сохранении', 'error');
         }
     }).catch(() => {});
 };
@@ -858,19 +831,19 @@ document.getElementById('saveHrBtn')?.addEventListener('click', () => {
     }
     
     if (!document.getElementById('hrLastName').value) {
-        alert('Введите фамилию');
+        showNotification('Введите фамилию', 'error');
         return;
     }
     if (!document.getElementById('hrFirstName').value) {
-        alert('Введите имя');
+        showNotification('Введите имя', 'error');
         return;
     }
     if (!document.getElementById('hrEmail').value) {
-        alert('Введите email');
+        showNotification('Введите email', 'error');
         return;
     }
     if (!document.getElementById('hrPosition').value) {
-        alert('Выберите должность');
+        showNotification('Выберите должность', 'error');
         return;
     }
     
@@ -924,12 +897,10 @@ document.getElementById('saveHrBtn')?.addEventListener('click', () => {
             } else {
                 document.getElementById('hrModal').classList.remove('active');
                 currentHrEditId = null;
-                if (roleId === 2) {
-                    renderHrCards();
-                }
+                renderHrCards();
             }
         } else {
-            alert('Ошибка при сохранении');
+            showNotification('Ошибка при сохранении', 'error');
         }
     });
 });
@@ -937,7 +908,7 @@ document.getElementById('saveHrBtn')?.addEventListener('click', () => {
 document.getElementById('saveDepartmentBtn')?.addEventListener('click', () => {
     const name = document.getElementById('departmentName').value;
     if (!name) {
-        alert('Введите название отдела');
+        showNotification('Введите название отдела', 'error');
         return;
     }
     
@@ -963,7 +934,7 @@ document.getElementById('saveDepartmentBtn')?.addEventListener('click', () => {
                 renderFilters();
             }
         } else {
-            alert('Ошибка при сохранении');
+            showNotification('Ошибка при сохранении', 'error');
         }
     });
 });
@@ -973,11 +944,11 @@ document.getElementById('savePositionBtn')?.addEventListener('click', () => {
     const departmentId = document.getElementById('positionDepartmentId').value;
     
     if (!name) {
-        alert('Введите название должности');
+        showNotification('Введите название должности', 'error');
         return;
     }
     if (!departmentId) {
-        alert('Выберите отдел');
+        showNotification('Выберите отдел', 'error');
         return;
     }
     
@@ -1002,15 +973,12 @@ document.getElementById('savePositionBtn')?.addEventListener('click', () => {
                 renderFilters();
             }
         } else {
-            alert('Ошибка при сохранении');
+            showNotification('Ошибка при сохранении', 'error');
         }
     });
 });
 
-document.getElementById('saveProfileBtn')?.addEventListener('click', () => {
-    alert('Изменения сохранены');
-    document.getElementById('profileModal')?.classList.remove('active');
-});
+document.getElementById('saveProfileBtn')?.addEventListener('click', handleProfileSave);
 
 document.getElementById('confirmFireBtn').onclick = () => {
     if (!currentFireId) return;

@@ -195,7 +195,6 @@ body::after {
     }
 }
 
-/* Смена пароля */
 .password-change-form {
     animation: fadeIn 0.4s ease-out;
     margin: -20px 0;
