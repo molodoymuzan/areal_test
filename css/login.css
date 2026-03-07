@@ -194,3 +194,121 @@ body::after {
         font-size: 24px;
     }
 }
+
+/* Смена пароля */
+.password-change-form {
+    animation: fadeIn 0.4s ease-out;
+    margin: -20px 0;
+}
+
+.password-change-form .icon-lock {
+    width: 56px;
+    height: 56px;
+    background: #FFD600;
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+}
+
+.password-change-form h2 {
+    font-size: 26px;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 12px;
+    text-align: center;
+    letter-spacing: -0.3px;
+}
+
+.password-change-form p {
+    color: #64748b;
+    font-size: 15px;
+    line-height: 1.5;
+    text-align: center;
+    margin-bottom: 28px;
+    padding: 0 10px;
+}
+
+.password-change-form .form-group {
+    margin-bottom: 20px;
+}
+
+.password-change-form label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+    margin-bottom: 6px;
+    margin-left: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.password-change-form input {
+    width: 100%;
+    padding: 14px 18px;
+    border: 2px solid #e2e8f0;
+    border-radius: 18px;
+    font-size: 15px;
+    background: #f8fafc;
+    transition: all 0.3s ease;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.password-change-form input:focus {
+    border-color: #FFD600;
+    box-shadow: 0 0 0 4px rgba(255, 214, 0, 0.1);
+    background: white;
+}
+
+.password-change-form input::placeholder {
+    color: #94a3b8;
+    font-size: 14px;
+}
+
+.password-change-form .btn {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 18px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    background: #FFD600;
+    color: #1e293b;
+    transition: all 0.3s ease;
+    margin: 16px 0 16px;
+    box-sizing: border-box;
+}
+
+.password-change-form .btn:hover {
+    background: #FFC800;
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px rgba(255, 214, 0, 0.3);
+}
+
+.password-change-form .hint {
+    text-align: center;
+    color: #94a3b8;
+    font-size: 13px;
+    margin-top: 8px;
+    padding-bottom: 0;
+}
+
+.temp-error-message {
+    background: #fee2e2;
+    color: #b91c1c;
+    padding: 12px 16px;
+    border-radius: 16px;
+    font-size: 14px;
+    margin: 12px 0 8px;
+    text-align: center;
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(-10px); }
+}

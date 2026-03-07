@@ -1,10 +1,23 @@
 <?php
 session_start();
-if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 2) {
+
+if (!isset($_SESSION['user_id'])) {
+    header('Location: ../login.php');
+    exit;
+}
+
+if (isset($_SESSION['password_change_required']) && $_SESSION['password_change_required'] == 1) {
+    session_destroy();
+    header('Location: ../login.php?need_change=1');
+    exit;
+}
+
+if ($_SESSION['role_id'] != 2) {
     header('Location: ../login.php');
     exit;
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>

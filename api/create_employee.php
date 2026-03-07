@@ -72,7 +72,7 @@ try {
 
     $tempPassword = null;
     if (!empty($data['email'])) {
-        $is_login = ($data['roleId'] == 2) ? 1 : 0;
+$is_login = ($data['roleId'] == 2 || $data['roleId'] == 1) ? 1 : 0;
         
         $stmt = $pdo->prepare("INSERT INTO contacts (user_id, type, value, is_login) VALUES (?, 'email', ?, ?)");
         $stmt->execute([$user_id, $data['email'], $is_login]);

@@ -1,3 +1,17 @@
+<?php
+session_start();
+
+if (isset($_SESSION['user_id']) && (!isset($_SESSION['password_change_required']) || $_SESSION['password_change_required'] == 0)) {
+    if ($_SESSION['role_id'] == 2) {
+        header('Location: hr/index.php');
+        exit;
+    } else if ($_SESSION['role_id'] == 1) {
+        header('Location: director/index.php');
+        exit;
+    }
+}
+?>
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>

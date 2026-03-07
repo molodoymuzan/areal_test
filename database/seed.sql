@@ -20,7 +20,8 @@ INSERT INTO positions (name, department_id) VALUES
 ('Project Manager', 2),
 ('HR Generalist', 3),
 ('Finance Manager', 4),
-('Sales Manager', 5);
+('Sales Manager', 5),
+('Руководитель HR', 3);
 
 INSERT INTO passports (series, number) VALUES 
 ('4510', '123456'),
@@ -43,7 +44,7 @@ INSERT INTO addresses (city, street, house, apartment, postal_code) VALUES
 ('Москва', 'пр. Мира', '25', '12', '123456');
 
 INSERT INTO users (last_name, first_name, middle_name, birth_date, passport_id, address_id, department_id, position_id, salary, hire_date, role_id, status_id) VALUES 
-('Ветров', 'Александр', 'Игоревич', '1980-01-15', NULL, NULL, 1, 1, 350000, '2020-01-10', 1, 1),
+('Ветров', 'Александр', 'Игоревич', '1980-01-15', NULL, NULL, 3, 7, 350000, '2020-01-10', 1, 1),
 ('Соколова', 'Мария', 'Ивановна', '1988-03-21', 6, 6, 3, 4, 180000, '2021-03-15', 2, 1),
 ('Козлов', 'Петр', 'Сергеевич', '1985-11-30', 7, 7, 3, 4, 220000, '2020-06-01', 2, 1),
 ('Новикова', 'Елена', 'Дмитриевна', '1992-07-18', 8, 8, 3, 4, 175000, '2022-02-10', 2, 2),
@@ -74,8 +75,8 @@ INSERT INTO contacts (user_id, type, value, is_login) VALUES
 (9, 'email', 'ivanov@company.ru', FALSE);
 
 INSERT INTO auth (contact_id, password_hash, temp_password, password_change_required, last_login) VALUES 
-((SELECT id FROM contacts WHERE value = 'a.vetrov@company.ru'), 'director123', NULL, 0, NULL),
-((SELECT id FROM contacts WHERE value = 'm.sokolova@company.ru'), 'hr123', NULL, 0, NULL),
-((SELECT id FROM contacts WHERE value = 'p.kozlov@company.ru'), 'hr456', NULL, 0, NULL),
-((SELECT id FROM contacts WHERE value = 'e.novikova@company.ru'), 'hr789', NULL, 0, NULL),
-((SELECT id FROM contacts WHERE value = 'volkova@company.ru'), 'hr123', NULL, 0, NULL);
+((SELECT id FROM contacts WHERE value = 'a.vetrov@company.ru'), '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', NULL, 0, NULL),
+((SELECT id FROM contacts WHERE value = 'm.sokolova@company.ru'), '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', NULL, 0, NULL),
+((SELECT id FROM contacts WHERE value = 'p.kozlov@company.ru'), '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', NULL, 0, NULL),
+((SELECT id FROM contacts WHERE value = 'e.novikova@company.ru'), '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', NULL, 0, NULL),
+((SELECT id FROM contacts WHERE value = 'volkova@company.ru'), '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', NULL, 0, NULL);
